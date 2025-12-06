@@ -464,6 +464,10 @@
           }
         }, [chart]);
 
+        const zoomIn = () => setZoom((z) => Math.min(z + 0.2, 10));
+        const zoomOut = () => setZoom((z) => Math.max(z - 0.2, 0.5));
+        const resetZoom = () => setZoom(1);
+
         return (
           <div className="flex flex-col gap-2">
             <div
@@ -483,21 +487,18 @@
             </div>
             <div className="flex gap-2 justify-center">
               <button
-                onClick={() => setZoom((z) => Math.min(z + 0.2, 10))}
+                onClick={zoomIn}
                 className="btn btn-soft btn-primary btn-circle"
               >
                 {magnifyingGlassPlusIcon()}
               </button>
               <button
-                onClick={() => setZoom((z) => Math.max(z - 0.2, 0.5))}
+                onClick={zoomOut}
                 className="btn btn-soft btn-primary btn-circle"
               >
                 {magnifyingGlassMinusIcon()}
               </button>
-              <button
-                onClick={() => setZoom(1)}
-                className="btn btn-soft btn-primary"
-              >
+              <button onClick={resetZoom} className="btn btn-soft btn-primary">
                 Reset
               </button>
             </div>
@@ -529,7 +530,9 @@
                 className="fab"
                 aria-label="Scroll to top"
               >
-                <div class="btn btn-lg btn-circle btn-secondary">{arrowUpIcon()}</div>
+                <div class="btn btn-lg btn-circle btn-secondary">
+                  {arrowUpIcon()}
+                </div>
               </button>
             )}
           </>
