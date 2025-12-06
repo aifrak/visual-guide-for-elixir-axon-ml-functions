@@ -28,12 +28,19 @@
       src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
     ></script>
     <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+    <script src="https://unpkg.com/mermaid@11.12.2/dist/mermaid.min.js"></script>
   </head>
   <body class="bg-base-200">
     <div id="root"></div>
 
     <script type="text/babel">
       const { useState, useEffect, useRef } = React;
+
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "dark",
+        themeVariables: { darkMode: true },
+      });
 
       // Activation Functions
       const sigmoid = (x) => 1 / (1 + Math.exp(-x));
@@ -691,6 +698,124 @@
         ],
       };
 
+      const activationFunctionsDecisionTree = `
+        flowchart TB
+          Start[🎯 Choosing an Activation Function] --> Question1{OUTPUT layer?}
+
+          Question1 -->|Yes| OutputLayer[Output Layer]
+          Question1 -->|No| HiddenLayer[Hidden Layer]
+
+          OutputLayer --> Question2{How many<br/>classes?}
+
+          %% OUTPUT LAYER - BINARY
+          Question2 -->|"2 classes (Binary)"| BinaryPath[Binary Classification]
+          BinaryPath --> SigmoidChoice{Need probabilities<br/>or log probabilities?}
+          SigmoidChoice -->|Probabilities| Sigmoid[SIGMOID<br/>yes/no predictions]
+          SigmoidChoice -->|Log probs| LogSigmoid[LOG SIGMOID<br/>numerically stable]
+
+          %% OUTPUT LAYER - MULTICLAS
+          Question2 -->|"3+ classes( Multi-class)"| MultiPath[Multi-class Classification]
+          MultiPath --> SoftmaxChoice{Choose variant}
+          SoftmaxChoice -->|Probabilities| Softmax[SOFTMAX<br/>cat/dog/bird]
+          SoftmaxChoice -->|Log probs| LogSoftmax[LOG SOFTMAX<br/>with NLL loss]
+          SoftmaxChoice -->|Stable computation| LogSumExp[LOG SUMEXP<br/>building block]
+
+          %% HIDDEN LAYER PATH
+          HiddenLayer --> Question3{What type<br/>of network?}
+
+          %% CNN Path
+          Question3 -->|Images/Vision CNN| CNNPath[Vision Networks]
+          CNNPath --> ReLU[ReLU<br/>industry standard]
+
+          %% Transformer Path
+          Question3 -->|Text/Language Transformer| TransPath[Transformer Networks]
+          TransPath --> TransChoice{Modern or<br/>traditional?}
+          TransChoice -->|Modern BERT/GPT| GELU[GELU<br/>transformers]
+          TransChoice -->|Alternative| Swish[SiLU/Swish<br/>smooth alternative]
+
+          %% RNN Path
+          Question3 -->|Time Series RNN/LSTM| RNNPath[Recurrent Networks]
+          RNNPath --> RecChoice{Output<br/>range?}
+          RecChoice -->|Centered -1 to 1| Tanh[Tanh<br/>classic choice]
+          RecChoice -->|Smoother| Softsign[SOFTSIGN<br/>polynomial]
+          RecChoice -->|Fast approximation| HardTanh[HARD TANH<br/>linear clipping]
+
+          %% Mobile Path
+          Question3 -->|Mobile/Edge Device| MobilePath[Mobile/Embedded]
+          MobilePath --> MobileChoice{Hardware<br/>constraint?}
+          MobileChoice -->|8-bit quantization| ReLU6[ReLU6<br/>prevents overflow]
+          MobileChoice -->|Fast inference| HardSigmoid[HARD SIGMOID<br/>linear approx]
+
+          %% Regression Path
+          Question3 -->|Regression Output| RegPath[Regression Tasks]
+          RegPath --> RegChoice{Need<br/>smoothness?}
+          RegChoice -->|Smooth & positive| Softplus[SOFTPLUS<br/>smooth ReLU]
+          RegChoice -->|Standard| ReLUAlt[ReLU<br/>default choice]
+
+          %% TROUBLESHOOTING PATH
+          ReLU --> Problems{Having<br/>problems?}
+
+          Problems -->|Neurons dying| DyingPath[Dying ReLU Problem]
+          DyingPath --> DyingFix{Severity?}
+          DyingFix -->|Mild issue| LeakyReLU[LEAKY ReLU<br/>small slope]
+          DyingFix -->|Moderate| ELU[ELU<br/>smooth negatives]
+          DyingFix -->|Need continuity| CELU[CELU<br/>continuous]
+
+          Problems -->|Very deep network| DeepPath[Deep Network Issues]
+          DeepPath --> DeepFix{Need self-norm?}
+          DeepFix -->|Yes| SELU[SELU<br/>self-normalizing]
+          DeepFix -->|No| ELUDeep[ELU/CELU<br/>better gradients]
+
+          Problems -->|Want better performance| PerfPath[Performance Optimization]
+          PerfPath --> PerfFix{What task?}
+          PerfFix -->|Computer vision| Mish[MISH<br/>YOLOv4]
+          PerfFix -->|General purpose| SwishPerf[SiLU/Swish<br/>modern]
+          PerfFix -->|Smooth needed| SoftplusPerf[SOFTPLUS<br/>everywhere diff]
+
+          Problems -->|No problems| Keep[Keep ReLU!]
+
+          %% Styling
+          style Start fill:#4f46e5
+          style OutputLayer fill:#1e3a8a
+          style HiddenLayer fill:#1e3a8a
+          style BinaryPath fill:#1e40af
+          style MultiPath fill:#1e40af
+          style CNNPath fill:#1e40af
+          style TransPath fill:#1e40af
+          style RNNPath fill:#1e40af
+          style MobilePath fill:#1e40af
+          style RegPath fill:#1e40af
+          style DyingPath fill:#7c2d12
+          style DeepPath fill:#7c2d12
+          style PerfPath fill:#7c2d12
+
+          style Sigmoid fill:#0a6446
+          style LogSigmoid fill:#0a6446
+          style Softmax fill:#0a6446
+          style LogSoftmax fill:#0a6446
+          style LogSumExp fill:#0a6446
+          style ReLU fill:#0a6446
+          style ReLUAlt fill:#0a6446
+          style GELU fill:#0a6446
+          style Swish fill:#0a6446
+          style Tanh fill:#0a6446
+          style Softsign fill:#0a6446
+          style HardTanh fill:#0a6446
+          style ReLU6 fill:#0a6446
+          style HardSigmoid fill:#0a6446
+          style Softplus fill:#0a6446
+          style SoftplusPerf fill:#0a6446
+
+          style LeakyReLU fill:#6b4608
+          style ELU fill:#6b4608
+          style ELUDeep fill:#6b4608
+          style CELU fill:#6b4608
+          style SELU fill:#6b4608
+          style Mish fill:#6b4608
+          style SwishPerf fill:#6b4608
+          style Keep fill:#0a6446
+      `;
+
       // Create Vega-Lite spec for a function
       const createSpec = (funcConfig) => ({
         $schema: "https://vega.github.io/schema/vega-lite/v5.json",
@@ -853,6 +978,12 @@
                 <a href="#activations-key-concepts">Key Concepts</a>{" "}
               </li>
               <li>
+                {" "}
+                <a href="#activations-beginner-decision-tree">
+                  Beginner's Decision Tree
+                </a>{" "}
+              </li>
+              <li>
                 <details class="w-64 z-10">
                   <summary>Functions</summary>
                   <ul>
@@ -950,6 +1081,15 @@
                     Normalization, Recurrent, and Shape layers operate on
                     tensors and cannot be shown as simple 2D graphs.
                   </div>
+                </SubSection>
+              </Section>
+
+              <Section
+                id="activations-beginner-decision-tree"
+                title="Beginner's Decision Tree"
+              >
+                <SubSection>
+                  <Mermaid chart={activationFunctionsDecisionTree} />
                 </SubSection>
               </Section>
 
@@ -1099,6 +1239,54 @@
               </button>
             )}
           </>
+        );
+      };
+
+      const Mermaid = ({ chart }) => {
+        const mermaidRef = useRef(null);
+        const [zoom, setZoom] = useState(1);
+
+        useEffect(() => {
+          if (mermaidRef.current) {
+            mermaid.contentLoaded();
+            mermaid.init(undefined, mermaidRef.current);
+          }
+        }, [chart]);
+
+          return (
+          <div>
+            <div className="flex gap-2 mb-2">
+              <button
+                onClick={() => setZoom(z => Math.min(z + 0.2, 3))}
+                className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Zoom In (+)
+              </button>
+              <button
+                onClick={() => setZoom(z => Math.max(z - 0.2, 0.5))}
+                className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Zoom Out (-)
+              </button>
+              <button
+                onClick={() => setZoom(1)}
+                className="px-3 py-1 bg-slate-600 text-white rounded hover:bg-slate-700"
+              >
+                Reset (100%)
+              </button>
+              <span className="px-3 py-1 bg-slate-700 text-white rounded">
+                {Math.round(zoom * 100)}%
+              </span>
+            </div>
+            <div
+              className="overflow-auto border border-slate-600 rounded-lg p-4 bg-slate-900"
+              style={{ maxHeight: '600px' }}
+            >
+              <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
+                <pre className="mermaid" ref={mermaidRef}>{chart}</pre>
+              </div>
+            </div>
+          </div>
         );
       };
 
