@@ -42,6 +42,552 @@
         themeVariables: { darkMode: true },
       });
 
+      // Main App component
+      const App = () => {
+        return (
+          <div className="bg-base-100 min-h-screen">
+            <div className="max-w-4xl mx-auto flex flex-col gap-2">
+              <h1 className="text-3xl font-bold mb-8 text-center">
+                Elixir Axon ML Functions
+              </h1>
+              <p class="p-2">
+                Visual guide to Elixir Axon activation and loss functions.
+                (Graphs, descriptions and use cases vibe-coded)
+              </p>
+
+              <div role="tablist" class="tabs tabs-box">
+                <ActivationFunctionsTab
+                  functionConfigs={functionConfigs.activation}
+                />
+                <LossFunctionsTab functionConfigs={functionConfigs.loss} />
+              </div>
+            </div>
+
+            <ScrollToTop />
+          </div>
+        );
+      };
+
+      const ActivationFunctionsTab = ({ functionConfigs }) => {
+        const closeMenu = (e) => {
+          e.target.closest("details").removeAttribute("open");
+        };
+
+        return (
+          <Tab
+            name="function-graphs"
+            title="Activation Functions"
+            className="flex flex-col gap-2"
+            checked={true}
+          >
+            <ul class="menu sm:menu-horizontal bg-base-200 rounded-box">
+              <li>
+                {" "}
+                <a href="#what-are-activation-functions">
+                  What are Activation Functions?
+                </a>{" "}
+              </li>
+              <li>
+                {" "}
+                <a href="#activations-key-concepts">Key Concepts</a>{" "}
+              </li>
+              <li>
+                {" "}
+                <a href="#activations-beginner-decision-tree">
+                  Beginner's Decision Tree
+                </a>{" "}
+              </li>
+              <li>
+                <details class="w-64 z-10">
+                  <summary>Functions</summary>
+                  <ul>
+                    {functionConfigs.map((funcConfig) => (
+                      <li>
+                        {" "}
+                        <a href={`#${funcConfig.id}`} onClick={closeMenu}>
+                          {funcConfig.name}
+                        </a>{" "}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              </li>
+            </ul>
+
+            <div class="flex flex-col gap-2">
+              <Section
+                id="what-are-activation-functions"
+                title="What are Activation Functions?"
+              >
+                <SubSection className="flex flex-col gap-6">
+                  <p>
+                    Activation functions are mathematical operations applied to
+                    each neuron's output in a neural network. They introduce{" "}
+                    <strong className="text-warning"> non-linearity </strong>,
+                    which allows the network to learn complex patterns. Without
+                    activation functions, your neural network would just be a
+                    fancy linear regression model, no matter how many layers you
+                    add!
+                  </p>
+                  <p>
+                    Think of them as decision-makers: they take the neuron's
+                    input and decide how strongly to "fire" or activate.
+                    Different activation functions have different properties -
+                    some are fast, some are smooth, some prevent certain
+                    training problems.
+                  </p>
+                  <p>
+                    <strong>Links:</strong>
+                    <ul>
+                      <li>
+                        <a
+                          class="link link-primary"
+                          href="https://en.wikipedia.org/wiki/Activation_function"
+                        >
+                          Wikipedia page
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          class="link link-primary"
+                          href="https://en.wikipedia.org/wiki/Activation_function#Table_of_activation_functions"
+                        >
+                          Wikipedia - Table of activation functions
+                        </a>
+                      </li>
+                    </ul>
+                  </p>
+                </SubSection>
+              </Section>
+
+              <Section id="activations-key-concepts" title="Key Concepts">
+                <SubSection className="flex flex-col gap-6">
+                  <div>
+                    <strong className="text-info">
+                      {" "}
+                      Graphable Functions:{" "}
+                    </strong>
+                    Only activation functions can be visualized as mathematical
+                    graphs. They transform input values element-wise.
+                  </div>
+                  <div>
+                    <strong className="text-success">
+                      {" "}
+                      Modern Activations:{" "}
+                    </strong>
+                    GELU, SiLU, and Mish are popular in recent architectures
+                    like transformers and perform well across tasks.
+                  </div>
+                  <div>
+                    <strong className="text-warning">
+                      {" "}
+                      Hardware-Friendly:{" "}
+                    </strong>
+                    Hard sigmoid, hard tanh, and ReLU6 are optimized for mobile
+                    and edge devices with limited compute.
+                  </div>
+                  <div>
+                    <strong className="text-error">
+                      {" "}
+                      Non-Graphable Layers:{" "}
+                    </strong>
+                    Linear (dense, embedding), Convolution, Pooling,
+                    Normalization, Recurrent, and Shape layers operate on
+                    tensors and cannot be shown as simple 2D graphs.
+                  </div>
+                </SubSection>
+              </Section>
+
+              <Section
+                id="activations-beginner-decision-tree"
+                title="Beginner's Decision Tree"
+              >
+                <SubSection>
+                  <Mermaid chart={activationFunctionsDecisionTree} />
+                </SubSection>
+              </Section>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                {functionConfigs.map((funcConfig) => (
+                  <FunctionGraph funcConfig={funcConfig} />
+                ))}
+              </div>
+            </div>
+          </Tab>
+        );
+      };
+
+      const LossFunctionsTab = ({ functionConfigs }) => {
+        const closeMenu = (e) => {
+          e.target.closest("details").removeAttribute("open");
+        };
+
+        return (
+          <Tab
+            name="function-graphs"
+            title="Loss Functions"
+            className="flex flex-col gap-2"
+          >
+            <ul class="menu sm:menu-horizontal bg-base-200 rounded-box">
+              <li>
+                {" "}
+                <a href="#what-are-loss">What are Loss Functions?</a>{" "}
+              </li>
+              <li>
+                {" "}
+                <a href="#loss-key-concepts">Key Concepts</a>{" "}
+              </li>
+              <li>
+                <details class="w-64 z-10">
+                  <summary>Functions</summary>
+                  <ul>
+                    {functionConfigs.map((funcConfig) => (
+                      <li>
+                        {" "}
+                        <a href={`#${funcConfig.id}`} onClick={closeMenu}>
+                          {funcConfig.name}
+                        </a>{" "}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              </li>
+            </ul>
+
+            <div class="flex flex-col gap-2">
+              <Section id="what-are-loss" title="What are Loss Functions?">
+                <SubSection className="flex flex-col">
+                  <p className="leading-relaxed mb-3">
+                    Loss functions (also called cost or objective functions)
+                    measure <strong className="text-warning">how wrong</strong>{" "}
+                    your model's predictions are. During training, the network
+                    tries to <strong className="text-success">minimize</strong>{" "}
+                    this loss - making smaller and smaller errors over time.
+                  </p>
+                  <p className="leading-relaxed">
+                    The choice of loss function depends on your task: regression
+                    tasks (predicting numbers) use different losses than
+                    classification tasks (predicting categories). The loss
+                    function is what the training algorithm optimizes - it's the
+                    "compass" that guides learning.
+                  </p>
+                  <p>
+                    <strong>Links:</strong>
+                    <ul>
+                      <li>
+                        <a
+                          class="link link-primary"
+                          href="https://en.wikipedia.org/wiki/Loss_function"
+                        >
+                          Wikipedia page
+                        </a>
+                      </li>
+                    </ul>
+                  </p>
+                </SubSection>
+              </Section>
+
+              <Section id="loss-key-concepts" title="Key Concepts">
+                <SubSection className="flex flex-col gap-4">
+                  <div>
+                    <strong className="text-info"> MSE vs MAE: </strong>
+                    MSE penalizes large errors more heavily. MAE treats all
+                    errors equally.
+                  </div>
+                  <div>
+                    <strong className="text-success"> Huber Loss: </strong>
+                    Combines benefits of MSE and MAE, quadratic for small
+                    errors, linear for large ones.
+                  </div>
+                  <div>
+                    <strong className="text-warning"> Cross-Entropy: </strong>
+                    Standard loss for classification tasks. Measures difference
+                    between predicted and true distributions.
+                  </div>
+                  <div>
+                    <strong className="text-error"> Task Specific: </strong>
+                    Use MSE/MAE for regression, cross-entropy for
+                    classification.
+                  </div>
+                </SubSection>
+              </Section>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                {functionConfigs.map((funcConfig) => (
+                  <FunctionGraph
+                    key={funcConfig.name}
+                    funcConfig={funcConfig}
+                  />
+                ))}
+              </div>
+            </div>
+          </Tab>
+        );
+      };
+
+      const Tab = ({ name, title, className, checked = false, children }) => {
+        const [isActive, setIsActive] = useState(checked);
+
+        return (
+          <>
+            <input
+              type="radio"
+              name={name}
+              class="tab"
+              aria-label={title}
+              defaultChecked={checked}
+              onChange={(e) => setIsActive(e.target.checked)}
+            />
+
+            <div class="tab-content">{isActive && children}</div>
+          </>
+        );
+      };
+
+      const Section = ({ id = "", title, children }) => {
+        return (
+          <section
+            id={id ? id : ""}
+            className="card card-border bg-base-100 full-w"
+          >
+            <div class="card-body justify-between">
+              <h2 class="card-title text-2xl font-semibold mb-4"> {title} </h2>
+              {children}
+            </div>
+          </section>
+        );
+      };
+      const SubSection = ({ className, children }) => {
+        return (
+          <section class="card flex flex-col gap-6 bg-base-200 shadow-xl leading-relaxed">
+            <div class={`card-body ${className}`}>{children}</div>
+          </section>
+        );
+      };
+
+      // Graph component
+      const FunctionGraph = ({ funcConfig }) => {
+        const chartRef = useRef(null);
+
+        useEffect(() => {
+          if (chartRef.current) {
+            vegaEmbed(chartRef.current, createSpec(funcConfig), {
+              actions: false,
+            });
+          }
+        }, [funcConfig]);
+
+        const links = [
+          funcConfig.pytorch && (
+            <a
+              className="link link-primary"
+              href={funcConfig.pytorch}
+              target="_blank"
+            >
+              🔥 PyTorch
+            </a>
+          ),
+          funcConfig.wiki && (
+            <a
+              className="link link-primary"
+              href={funcConfig.wiki}
+              target="_blank"
+            >
+              📖 Wikipedia
+            </a>
+          ),
+          funcConfig.mlCheatsheet && (
+            <a
+              className="link link-primary"
+              href={funcConfig.mlCheatsheet}
+              target="_blank"
+            >
+              📕 ML Cheatsheet
+            </a>
+          ),
+        ].filter(Boolean);
+
+        return (
+          <Section id={funcConfig.id} title={funcConfig.name}>
+            <SubSection className="flex flex-col gap-4">
+              <div class="flex flex-col gap-2">
+                <a class="link link-primary" href={funcConfig.axon.docLink}>
+                  <code>{funcConfig.axon.functionName}</code>
+                </a>
+              </div>
+              <div class="">
+                <div class="font-semibold">Description:</div>
+                <p>{funcConfig.description}</p>
+              </div>
+              <div class="">
+                <div class="font-semibold">Use Cases:</div>
+                <ul class="text-success text-sm flex flex-col gap-1">
+                  {funcConfig.useCases.map((useCase) => (
+                    <li class="font-semibold">✓ {useCase}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                {links.map((link, index) => (
+                  <>
+                    {index > 0 && <span> | </span>}
+                    {link}
+                  </>
+                ))}
+              </div>
+            </SubSection>
+            <div
+              ref={chartRef}
+              class="card bg-base-100 shadow-xl mx-auto w-full h-64 overflow-hidden"
+            ></div>
+          </Section>
+        );
+      };
+
+      const Mermaid = ({ chart }) => {
+        const mermaidRef = useRef(null);
+        const [zoom, setZoom] = useState(1);
+
+        useEffect(() => {
+          if (mermaidRef.current) {
+            mermaid.contentLoaded();
+            mermaid.init(undefined, mermaidRef.current);
+          }
+        }, [chart]);
+
+        return (
+          <div className="flex flex-col gap-2">
+            <div
+              className="overflow-auto border border-slate-600 rounded-lg p-4 bg-slate-900"
+              style={{ maxHeight: "600px" }}
+            >
+              <div
+                style={{
+                  transform: `scale(${zoom})`,
+                  transformOrigin: "top left",
+                }}
+              >
+                <pre className="mermaid" ref={mermaidRef}>
+                  {chart}
+                </pre>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-center">
+              <button
+                onClick={() => setZoom((z) => Math.min(z + 0.2, 10))}
+                className="btn btn-soft btn-primary btn-circle"
+              >
+                {magnifyingGlassPlusIcon()}
+              </button>
+              <button
+                onClick={() => setZoom((z) => Math.max(z - 0.2, 0.5))}
+                className="btn btn-soft btn-primary btn-circle"
+              >
+                {magnifyingGlassMinusIcon()}
+              </button>
+              <button
+                onClick={() => setZoom(1)}
+                className="btn btn-soft btn-primary"
+              >
+                Reset (100%)
+              </button>
+              <span className="btn btn-soft pointer-events-none cursor-default">
+                {Math.round(zoom * 100)}%
+              </span>
+            </div>
+          </div>
+        );
+      };
+
+      const ScrollToTop = () => {
+        const [isVisible, setIsVisible] = useState(false);
+
+        useEffect(() => {
+          const toggleVisibility = () => {
+            setIsVisible(window.scrollY > 300);
+          };
+
+          window.addEventListener("scroll", toggleVisibility);
+          return () => window.removeEventListener("scroll", toggleVisibility);
+        }, []);
+
+        const scrollToTop = () => {
+          window.scrollTo({ top: 0 });
+        };
+
+        return (
+          <>
+            {isVisible && (
+              <button
+                onClick={scrollToTop}
+                className="btn btn-xl btn-circle btn-secondary fixed bottom-8 right-8 shadow-lg"
+                aria-label="Scroll to top"
+              >
+                {arrowUpIcon()}
+              </button>
+            )}
+          </>
+        );
+      };
+
+      // Icons
+      const arrowUpIcon = () => {
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="size-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
+            />
+          </svg>
+        );
+      };
+
+      const magnifyingGlassPlusIcon = () => {
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="size-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6"
+            />
+          </svg>
+        );
+      };
+
+      const magnifyingGlassMinusIcon = () => {
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM13.5 10.5h-6"
+            />
+          </svg>
+        );
+      };
+
       // Activation Functions
       const sigmoid = (x) => 1 / (1 + Math.exp(-x));
       const tanh = (x) => Math.tanh(x);
@@ -913,552 +1459,6 @@
           },
         ],
       });
-
-      // Graph component
-      const FunctionGraph = ({ funcConfig }) => {
-        const chartRef = useRef(null);
-
-        useEffect(() => {
-          if (chartRef.current) {
-            vegaEmbed(chartRef.current, createSpec(funcConfig), {
-              actions: false,
-            });
-          }
-        }, [funcConfig]);
-
-        const links = [
-          funcConfig.pytorch && (
-            <a
-              className="link link-primary"
-              href={funcConfig.pytorch}
-              target="_blank"
-            >
-              🔥 PyTorch
-            </a>
-          ),
-          funcConfig.wiki && (
-            <a
-              className="link link-primary"
-              href={funcConfig.wiki}
-              target="_blank"
-            >
-              📖 Wikipedia
-            </a>
-          ),
-          funcConfig.mlCheatsheet && (
-            <a
-              className="link link-primary"
-              href={funcConfig.mlCheatsheet}
-              target="_blank"
-            >
-              📕 ML Cheatsheet
-            </a>
-          ),
-        ].filter(Boolean);
-
-        return (
-          <Section id={funcConfig.id} title={funcConfig.name}>
-            <SubSection className="flex flex-col gap-4">
-              <div class="flex flex-col gap-2">
-                <a class="link link-primary" href={funcConfig.axon.docLink}>
-                  <code>{funcConfig.axon.functionName}</code>
-                </a>
-              </div>
-              <div class="">
-                <div class="font-semibold">Description:</div>
-                <p>{funcConfig.description}</p>
-              </div>
-              <div class="">
-                <div class="font-semibold">Use Cases:</div>
-                <ul class="text-success text-sm flex flex-col gap-1">
-                  {funcConfig.useCases.map((useCase) => (
-                    <li class="font-semibold">✓ {useCase}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                {links.map((link, index) => (
-                  <>
-                    {index > 0 && <span> | </span>}
-                    {link}
-                  </>
-                ))}
-              </div>
-            </SubSection>
-            <div
-              ref={chartRef}
-              class="card bg-base-100 shadow-xl mx-auto w-full h-64 overflow-hidden"
-            ></div>
-          </Section>
-        );
-      };
-
-      const Section = ({ id = "", title, children }) => {
-        return (
-          <section
-            id={id ? id : ""}
-            className="card card-border bg-base-100 full-w"
-          >
-            <div class="card-body justify-between">
-              <h2 class="card-title text-2xl font-semibold mb-4"> {title} </h2>
-              {children}
-            </div>
-          </section>
-        );
-      };
-      const SubSection = ({ className, children }) => {
-        return (
-          <section class="card flex flex-col gap-6 bg-base-200 shadow-xl leading-relaxed">
-            <div class={`card-body ${className}`}>{children}</div>
-          </section>
-        );
-      };
-
-      const Tab = ({ name, title, className, checked = false, children }) => {
-        const [isActive, setIsActive] = useState(checked);
-
-        return (
-          <>
-            <input
-              type="radio"
-              name={name}
-              class="tab"
-              aria-label={title}
-              defaultChecked={checked}
-              onChange={(e) => setIsActive(e.target.checked)}
-            />
-
-            <div class="tab-content">{isActive && children}</div>
-          </>
-        );
-      };
-
-      const ActivationFunctionsTab = ({ functionConfigs }) => {
-        const closeMenu = (e) => {
-          e.target.closest("details").removeAttribute("open");
-        };
-
-        return (
-          <Tab
-            name="function-graphs"
-            title="Activation Functions"
-            className="flex flex-col gap-2"
-            checked={true}
-          >
-            <ul class="menu sm:menu-horizontal bg-base-200 rounded-box">
-              <li>
-                {" "}
-                <a href="#what-are-activation-functions">
-                  What are Activation Functions?
-                </a>{" "}
-              </li>
-              <li>
-                {" "}
-                <a href="#activations-key-concepts">Key Concepts</a>{" "}
-              </li>
-              <li>
-                {" "}
-                <a href="#activations-beginner-decision-tree">
-                  Beginner's Decision Tree
-                </a>{" "}
-              </li>
-              <li>
-                <details class="w-64 z-10">
-                  <summary>Functions</summary>
-                  <ul>
-                    {functionConfigs.map((funcConfig) => (
-                      <li>
-                        {" "}
-                        <a href={`#${funcConfig.id}`} onClick={closeMenu}>
-                          {funcConfig.name}
-                        </a>{" "}
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              </li>
-            </ul>
-
-            <div class="flex flex-col gap-2">
-              <Section
-                id="what-are-activation-functions"
-                title="What are Activation Functions?"
-              >
-                <SubSection className="flex flex-col gap-6">
-                  <p>
-                    Activation functions are mathematical operations applied to
-                    each neuron's output in a neural network. They introduce{" "}
-                    <strong className="text-warning"> non-linearity </strong>,
-                    which allows the network to learn complex patterns. Without
-                    activation functions, your neural network would just be a
-                    fancy linear regression model, no matter how many layers you
-                    add!
-                  </p>
-                  <p>
-                    Think of them as decision-makers: they take the neuron's
-                    input and decide how strongly to "fire" or activate.
-                    Different activation functions have different properties -
-                    some are fast, some are smooth, some prevent certain
-                    training problems.
-                  </p>
-                  <p>
-                    <strong>Links:</strong>
-                    <ul>
-                      <li>
-                        <a
-                          class="link link-primary"
-                          href="https://en.wikipedia.org/wiki/Activation_function"
-                        >
-                          Wikipedia page
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          class="link link-primary"
-                          href="https://en.wikipedia.org/wiki/Activation_function#Table_of_activation_functions"
-                        >
-                          Wikipedia - Table of activation functions
-                        </a>
-                      </li>
-                    </ul>
-                  </p>
-                </SubSection>
-              </Section>
-
-              <Section id="activations-key-concepts" title="Key Concepts">
-                <SubSection className="flex flex-col gap-6">
-                  <div>
-                    <strong className="text-info">
-                      {" "}
-                      Graphable Functions:{" "}
-                    </strong>
-                    Only activation functions can be visualized as mathematical
-                    graphs. They transform input values element-wise.
-                  </div>
-                  <div>
-                    <strong className="text-success">
-                      {" "}
-                      Modern Activations:{" "}
-                    </strong>
-                    GELU, SiLU, and Mish are popular in recent architectures
-                    like transformers and perform well across tasks.
-                  </div>
-                  <div>
-                    <strong className="text-warning">
-                      {" "}
-                      Hardware-Friendly:{" "}
-                    </strong>
-                    Hard sigmoid, hard tanh, and ReLU6 are optimized for mobile
-                    and edge devices with limited compute.
-                  </div>
-                  <div>
-                    <strong className="text-error">
-                      {" "}
-                      Non-Graphable Layers:{" "}
-                    </strong>
-                    Linear (dense, embedding), Convolution, Pooling,
-                    Normalization, Recurrent, and Shape layers operate on
-                    tensors and cannot be shown as simple 2D graphs.
-                  </div>
-                </SubSection>
-              </Section>
-
-              <Section
-                id="activations-beginner-decision-tree"
-                title="Beginner's Decision Tree"
-              >
-                <SubSection>
-                  <Mermaid chart={activationFunctionsDecisionTree} />
-                </SubSection>
-              </Section>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                {functionConfigs.map((funcConfig) => (
-                  <FunctionGraph funcConfig={funcConfig} />
-                ))}
-              </div>
-            </div>
-          </Tab>
-        );
-      };
-
-      const LossFunctionsTab = ({ functionConfigs }) => {
-        const closeMenu = (e) => {
-          e.target.closest("details").removeAttribute("open");
-        };
-
-        return (
-          <Tab
-            name="function-graphs"
-            title="Loss Functions"
-            className="flex flex-col gap-2"
-          >
-            <ul class="menu sm:menu-horizontal bg-base-200 rounded-box">
-              <li>
-                {" "}
-                <a href="#what-are-loss">What are Loss Functions?</a>{" "}
-              </li>
-              <li>
-                {" "}
-                <a href="#loss-key-concepts">Key Concepts</a>{" "}
-              </li>
-              <li>
-                <details class="w-64 z-10">
-                  <summary>Functions</summary>
-                  <ul>
-                    {functionConfigs.map((funcConfig) => (
-                      <li>
-                        {" "}
-                        <a href={`#${funcConfig.id}`} onClick={closeMenu}>
-                          {funcConfig.name}
-                        </a>{" "}
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              </li>
-            </ul>
-
-            <div class="flex flex-col gap-2">
-              <Section id="what-are-loss" title="What are Loss Functions?">
-                <SubSection className="flex flex-col">
-                  <p className="leading-relaxed mb-3">
-                    Loss functions (also called cost or objective functions)
-                    measure <strong className="text-warning">how wrong</strong>{" "}
-                    your model's predictions are. During training, the network
-                    tries to <strong className="text-success">minimize</strong>{" "}
-                    this loss - making smaller and smaller errors over time.
-                  </p>
-                  <p className="leading-relaxed">
-                    The choice of loss function depends on your task: regression
-                    tasks (predicting numbers) use different losses than
-                    classification tasks (predicting categories). The loss
-                    function is what the training algorithm optimizes - it's the
-                    "compass" that guides learning.
-                  </p>
-                  <p>
-                    <strong>Links:</strong>
-                    <ul>
-                      <li>
-                        <a
-                          class="link link-primary"
-                          href="https://en.wikipedia.org/wiki/Loss_function"
-                        >
-                          Wikipedia page
-                        </a>
-                      </li>
-                    </ul>
-                  </p>
-                </SubSection>
-              </Section>
-
-              <Section id="loss-key-concepts" title="Key Concepts">
-                <SubSection className="flex flex-col gap-4">
-                  <div>
-                    <strong className="text-info"> MSE vs MAE: </strong>
-                    MSE penalizes large errors more heavily. MAE treats all
-                    errors equally.
-                  </div>
-                  <div>
-                    <strong className="text-success"> Huber Loss: </strong>
-                    Combines benefits of MSE and MAE, quadratic for small
-                    errors, linear for large ones.
-                  </div>
-                  <div>
-                    <strong className="text-warning"> Cross-Entropy: </strong>
-                    Standard loss for classification tasks. Measures difference
-                    between predicted and true distributions.
-                  </div>
-                  <div>
-                    <strong className="text-error"> Task Specific: </strong>
-                    Use MSE/MAE for regression, cross-entropy for
-                    classification.
-                  </div>
-                </SubSection>
-              </Section>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                {functionConfigs.map((funcConfig) => (
-                  <FunctionGraph
-                    key={funcConfig.name}
-                    funcConfig={funcConfig}
-                  />
-                ))}
-              </div>
-            </div>
-          </Tab>
-        );
-      };
-
-      const ScrollToTop = () => {
-        const [isVisible, setIsVisible] = useState(false);
-
-        useEffect(() => {
-          const toggleVisibility = () => {
-            setIsVisible(window.scrollY > 300);
-          };
-
-          window.addEventListener("scroll", toggleVisibility);
-          return () => window.removeEventListener("scroll", toggleVisibility);
-        }, []);
-
-        const scrollToTop = () => {
-          window.scrollTo({ top: 0 });
-        };
-
-        return (
-          <>
-            {isVisible && (
-              <button
-                onClick={scrollToTop}
-                className="btn btn-xl btn-circle btn-secondary fixed bottom-8 right-8 shadow-lg"
-                aria-label="Scroll to top"
-              >
-                {arrowUpIcon()}
-              </button>
-            )}
-          </>
-        );
-      };
-
-      const Mermaid = ({ chart }) => {
-        const mermaidRef = useRef(null);
-        const [zoom, setZoom] = useState(1);
-
-        useEffect(() => {
-          if (mermaidRef.current) {
-            mermaid.contentLoaded();
-            mermaid.init(undefined, mermaidRef.current);
-          }
-        }, [chart]);
-
-        return (
-          <div className="flex flex-col gap-2">
-            <div
-              className="overflow-auto border border-slate-600 rounded-lg p-4 bg-slate-900"
-              style={{ maxHeight: "600px" }}
-            >
-              <div
-                style={{
-                  transform: `scale(${zoom})`,
-                  transformOrigin: "top left",
-                }}
-              >
-                <pre className="mermaid" ref={mermaidRef}>
-                  {chart}
-                </pre>
-              </div>
-            </div>
-            <div className="flex gap-2 justify-center">
-              <button
-                onClick={() => setZoom((z) => Math.min(z + 0.2, 10))}
-                className="btn btn-soft btn-primary btn-circle"
-              >
-                {magnifyingGlassPlusIcon()}
-              </button>
-              <button
-                onClick={() => setZoom((z) => Math.max(z - 0.2, 0.5))}
-                className="btn btn-soft btn-primary btn-circle"
-              >
-                {magnifyingGlassMinusIcon()}
-              </button>
-              <button
-                onClick={() => setZoom(1)}
-                className="btn btn-soft btn-primary"
-              >
-                Reset (100%)
-              </button>
-              <span className="btn btn-soft pointer-events-none cursor-default">
-                {Math.round(zoom * 100)}%
-              </span>
-            </div>
-          </div>
-        );
-      };
-
-      // Main App component
-      const App = () => {
-        return (
-          <div className="bg-base-100 min-h-screen">
-            <div className="max-w-4xl mx-auto flex flex-col gap-2">
-              <h1 className="text-3xl font-bold mb-8 text-center">
-                Elixir Axon ML Functions
-              </h1>
-              <p class="p-2">
-                Visual guide to Elixir Axon activation and loss functions.
-                (Graphs, descriptions and use cases vibe-coded)
-              </p>
-
-              <div role="tablist" class="tabs tabs-box">
-                <ActivationFunctionsTab
-                  functionConfigs={functionConfigs.activation}
-                />
-                <LossFunctionsTab functionConfigs={functionConfigs.loss} />
-              </div>
-            </div>
-
-            <ScrollToTop />
-          </div>
-        );
-      };
-
-      // Icons
-      const arrowUpIcon = () => {
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="size-6"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
-            />
-          </svg>
-        );
-      };
-
-      const magnifyingGlassPlusIcon = () => {
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="size-6"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6"
-            />
-          </svg>
-        );
-      };
-
-      const magnifyingGlassMinusIcon = () => {
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="size-6"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM13.5 10.5h-6"
-            />
-          </svg>
-        );
-      };
 
       // Render the app
       const root = ReactDOM.createRoot(document.getElementById("root"));
