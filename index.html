@@ -247,6 +247,12 @@
                 <a href="#loss-key-concepts">Key Concepts</a>{" "}
               </li>
               <li>
+                {" "}
+                <a href="#loss-beginner-decision-tree">
+                  Beginner's Decision Tree
+                </a>{" "}
+              </li>
+              <li>
                 <details class="w-64 z-10">
                   <summary>Functions</summary>
                   <ul>
@@ -318,6 +324,15 @@
                     Use MSE/MAE for regression, cross-entropy for
                     classification.
                   </div>
+                </SubSection>
+              </Section>
+
+              <Section
+                id="loss-beginner-decision-tree"
+                title="Beginner's Decision Tree"
+              >
+                <SubSection>
+                  <Mermaid chart={lossFunctionsDecisionTree} />
                 </SubSection>
               </Section>
 
@@ -1432,6 +1447,66 @@
           style Mish fill:#6b4608
           style SwishPerf fill:#6b4608
           style Keep fill:#0a6446
+      `;
+
+      const lossFunctionsDecisionTree = `
+      flowchart TB
+          Start[🎯 Choosing a Loss Function] --> Question1{What are you<br/>predicting?}
+
+          %% REGRESSION PATH
+          Question1 -->|Continuous values<br/>Numbers| DataType{What TYPE of<br/>numbers?}
+          DataType -->|Count data<br/>Events, clicks, visitors| Poisson[Poisson Loss<br/>For count predictions<br/>Traffic, sales, etc.]
+          DataType -->|Regular numbers<br/>Prices, temps, distances| Regression{Does data have<br/>outliers?}
+          Regression -->|No outliers| MSE[MSE L2<br/>Mean Squared Error<br/>Standard choice]
+          Regression -->|Yes, has outliers| OutlierSeverity{How severe?}
+          OutlierSeverity -->|Some outliers| Huber[Huber Loss<br/>Best of both worlds<br/>Robust & smooth]
+          OutlierSeverity -->|Many outliers| MAE[MAE L1<br/>Mean Absolute Error<br/>Very robust]
+          Regression -.->|Advanced: need smoothness| LogCosh[ℹ️ Log-Cosh<br/>Smoother than MAE<br/>Rarely needed]
+
+          %% CLASSIFICATION PATH
+          Question1 -->|Categories<br/>Classes| Classification{How many<br/>classes?}
+
+          %% BINARY CLASSIFICATION
+          Classification -->|"2 classes<br/>(Binary)"| BinaryChoice[Binary Classification]
+          BinaryChoice --> BCE[Binary Cross-Entropy<br/>aka Log Loss<br/>+ Sigmoid activation]
+          BinaryChoice -.-> | Advanced alternatives | BinaryVariants{Need<br/>variants?}
+          BinaryVariants -->|Margin-based| SoftMargin[ℹ️ Soft Margin Loss<br/>Smooth hinge for binary<br/>Like SVM]
+          BinaryVariants -->|Standard| HingeBinary[ℹ️ Hinge Loss<br/>Maximum margin binary<br/>Classic SVM]
+
+          %% MULTI-CLASS CLASSIFICATION
+          Classification -->|"3+ classes<br/>(Multi-class)"| MultiChoice[Multi-class Classification]
+          MultiChoice --> CatCross[Categorical Cross-Entropy<br/>Standard choice<br/>+ Softmax activation]
+          MultiChoice -.-> | Advanced alternatives | MultiVariants{Need<br/>variants?}
+          MultiVariants -->|Margin-based| CatHinge[ℹ️ Categorical Hinge<br/>Multi-class SVM<br/>Maximum margin]
+          MultiVariants -->|Distribution comparison| KL[ℹ️ KL Divergence<br/>Compare probability dists<br/>VAEs, regularization]
+
+          %% SPECIAL TASKS
+          Question1 -->|Similarity/Direction<br/>Embeddings| Similarity[Similarity Tasks]
+          Similarity --> CosineSim[Cosine Similarity<br/>Face recognition<br/>Text similarity<br/>Direction matters]
+
+          %% STYLING
+          style Start fill:#4f46e5
+
+          %% Primary recommendations
+          style MSE fill:#0a6446
+          style MAE fill:#0a6446
+          style Huber fill:#0a6446
+          style Poisson fill:#0a6446
+          style BCE fill:#0a6446
+          style CatCross fill:#0a6446
+          style CosineSim fill:#0a6446
+
+          %% Secondary options
+          style LogCosh fill:#6b21a8
+          style SoftMargin fill:#6b21a8
+          style HingeBinary fill:#6b21a8
+          style CatHinge fill:#6b21a8
+          style KL fill:#6b21a8
+
+          %% Intermediate nodes (Dark blue)
+          style BinaryChoice fill:#1e3a8a
+          style MultiChoice fill:#1e3a8a
+          style Similarity fill:#1e3a8a
       `;
 
       // Create Vega-Lite spec for a function
