@@ -1333,30 +1333,7 @@
         }, [chart]);
 
         return (
-          <div>
-            <div className="flex gap-2 mb-2">
-              <button
-                onClick={() => setZoom((z) => Math.min(z + 0.2, 10))}
-                className="btn btn-primary  btn-xs"
-              >
-                +
-              </button>
-              <button
-                onClick={() => setZoom((z) => Math.max(z - 0.2, 0.5))}
-                className="btn btn-primary btn-xs"
-              >
-                -
-              </button>
-              <button
-                onClick={() => setZoom(1)}
-                className="btn btn-primary btn-xs"
-              >
-                Reset (100%)
-              </button>
-              <span className="btn btn-default btn-xs">
-                {Math.round(zoom * 100)}%
-              </span>
-            </div>
+          <div className="flex flex-col gap-2">
             <div
               className="overflow-auto border border-slate-600 rounded-lg p-4 bg-slate-900"
               style={{ maxHeight: "600px" }}
@@ -1371,6 +1348,29 @@
                   {chart}
                 </pre>
               </div>
+            </div>
+            <div className="flex gap-2 justify-center">
+              <button
+                onClick={() => setZoom((z) => Math.min(z + 0.2, 10))}
+                className="btn btn-soft btn-primary btn-circle"
+              >
+                {magnifyingGlassPlusIcon()}
+              </button>
+              <button
+                onClick={() => setZoom((z) => Math.max(z - 0.2, 0.5))}
+                className="btn btn-soft btn-primary btn-circle"
+              >
+                {magnifyingGlassMinusIcon()}
+              </button>
+              <button
+                onClick={() => setZoom(1)}
+                className="btn btn-soft btn-primary"
+              >
+                Reset (100%)
+              </button>
+              <span className="btn btn-soft pointer-events-none cursor-default">
+                {Math.round(zoom * 100)}%
+              </span>
             </div>
           </div>
         );
@@ -1399,6 +1399,45 @@
 
             <ScrollToTop />
           </div>
+        );
+      };
+
+      // Icons
+      const magnifyingGlassPlusIcon = () => {
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="size-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6"
+            />
+          </svg>
+        );
+      };
+
+      const magnifyingGlassMinusIcon = () => {
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM13.5 10.5h-6"
+            />
+          </svg>
         );
       };
 
