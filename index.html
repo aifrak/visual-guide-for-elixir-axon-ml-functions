@@ -1253,17 +1253,17 @@
           }
         }, [chart]);
 
-          return (
+        return (
           <div>
             <div className="flex gap-2 mb-2">
               <button
-                onClick={() => setZoom(z => Math.min(z + 0.2, 3))}
+                onClick={() => setZoom((z) => Math.min(z + 0.2, 3))}
                 className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
                 Zoom In (+)
               </button>
               <button
-                onClick={() => setZoom(z => Math.max(z - 0.2, 0.5))}
+                onClick={() => setZoom((z) => Math.max(z - 0.2, 0.5))}
                 className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
                 Zoom Out (-)
@@ -1280,10 +1280,17 @@
             </div>
             <div
               className="overflow-auto border border-slate-600 rounded-lg p-4 bg-slate-900"
-              style={{ maxHeight: '600px' }}
+              style={{ maxHeight: "600px" }}
             >
-              <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
-                <pre className="mermaid" ref={mermaidRef}>{chart}</pre>
+              <div
+                style={{
+                  transform: `scale(${zoom})`,
+                  transformOrigin: "top left",
+                }}
+              >
+                <pre className="mermaid" ref={mermaidRef}>
+                  {chart}
+                </pre>
               </div>
             </div>
           </div>
