@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Elixir Axon ML Functions</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/daisyui@5"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.production.min.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+  </head>
+  <body class="bg-base-200">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
+
+      // Activation Functions
+      const sigmoid = (x) => 1 / (1 + Math.exp(-x));
+      const tanh = (x) => Math.tanh(x);
+      const relu = (x) => Math.max(0, x);
+      const leakyRelu = (x) => (x > 0 ? x : 0.01 * x);
+      const elu = (x) => (x > 0 ? x : 1.0 * (Math.exp(x) - 1));
+      const softplus = (x) => Math.log(1 + Math.exp(x));
+      const gelu = (x) =>
+        0.5 *
+        x *
+        (1 +
+          Math.tanh(Math.sqrt(2 / Math.PI) * (x + 0.044715 * Math.pow(x, 3))));
+      const hardSigmoid = (x) => Math.max(0, Math.min(1, 0.2 * x + 0.5));
+      const hardTanh = (x) => Math.max(-1, Math.min(1, x));
+      const selu = (x) => {
+        const alpha = 1.67326;
+        const scale = 1.0507;
+        return scale * (x > 0 ? x : alpha * (Math.exp(x) - 1));
+      };
+      const silu = (x) => x * sigmoid(x);
+      const mish = (x) => x * Math.tanh(softplus(x));
+      const relu6 = (x) => Math.min(Math.max(0, x), 6);
+      const celu = (x) => (x > 0 ? x : 1.0 * (Math.exp(x) - 1));
+      const logSigmoid = (x) => Math.log(sigmoid(x));
+      const softsign = (x) => x / (1 + Math.abs(x));
+      const logSumExp = (x) => Math.log(Math.exp(x) + Math.exp(-x)); // simplified for single value
+      const softmax = (x) => Math.exp(x) / (Math.exp(x) + Math.exp(0)); // simplified for visualization
+      const logSoftmax = (x) => x - Math.log(Math.exp(x) + Math.exp(0)); // simplified
+
+      // Loss Functions (simplified for visualization)
+      const bce = (x) => {
+        const p = 1 / (1 + Math.exp(-x));
+        return -Math.log(Math.max(p, 0.0001));
+      };
+      const cce = (x) =>
+        -Math.log(Math.max(Math.exp(x) / (Math.exp(x) + Math.exp(0)), 0.0001));
+      const mse = (x) => x * x;
+      const mae = (x) => Math.abs(x);
+      const huber = (x) => (Math.abs(x) <= 1 ? 0.5 * x * x : Math.abs(x) - 0.5);
+      const kld = (x) => {
+        const p = Math.exp(x) / (Math.exp(x) + Math.exp(0));
+        const q = 0.5;
+        return p * Math.log(Math.max(p / q, 0.0001));
+      };
+      const hinge = (x) => Math.max(0, 1 - x);
+      const categoricalHinge = (x) => Math.max(0, x);
+      const cosineSimilarity = (x) => 1 - x / Math.sqrt(1 + x * x);
+      const logCosh = (x) => Math.log(Math.cosh(x));
+      const poissonLoss = (x) => Math.exp(x) - x;
+      const softMarginLoss = (x) => Math.log(1 + Math.exp(-x));
+
+      // Generate data points for a function
+      const generateData = (func) => {
+        const data = [];
+        for (let x = -6; x <= 6; x += 0.1) {
+          data.push({ x: x, y: func(x) });
+        }
+        return data;
+      };
+
+      const functionConfigs = {
+        activation: [
+          {
+            id: "sigmoid",
+            name: "Sigmoid",
+            func: sigmoid,
+            color: "#3b82f6",
+            axon: {
+              functionName: "Axon.sigmoid/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#sigmoid/2",
+            },
+            description:
+              "Axon.sigmoid/2 - Maps values to (0,1). Used in binary classification.",
+            useCases: [
+              "Binary classification output (yes/no, true/false)",
+              "When you need probabilities between 0 and 1",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Sigmoid_function",
+            mlCheatsheet:
+              "https://ml-cheatsheet.readthedocs.io/en/latest/activation_functions.html#sigmoid",
+          },
+          {
+            id: "tanh",
+            name: "Tanh",
+            func: tanh,
+            color: "#10b981",
+            axon: {
+              functionName: "Axon.tanh/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#tanh/2",
+            },
+            description: "Maps values to (-1,1). Better for hidden layers.",
+            useCases: [
+              "Hidden layers in shallow networks",
+              "When you need outputs centered around 0",
+              "Recurrent networks (RNNs)",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Hyperbolic_functions#Hyperbolic_tangent",
+            mlCheatsheet:
+              "https://ml-cheatsheet.readthedocs.io/en/latest/activation_functions.html#tanh",
+          },
+          {
+            id: "hard-sigmoid",
+            name: "Hard Sigmoid",
+            func: hardSigmoid,
+            color: "#14b8a6",
+            axon: {
+              functionName: "Axon.hard_sigmoid/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#hard_sigmoid/2",
+            },
+            description: "Piecewise linear approximation of sigmoid.",
+            useCases: [
+              "MOBILE and EDGE devices (faster computation)",
+              "Quantized neural networks",
+              "Real-time applications",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Hard_sigmoid",
+            mlCheatsheet: null,
+          },
+          {
+            id: "hard-tanh",
+            name: "Hard Tanh",
+            func: hardTanh,
+            color: "#fb923c",
+            axon: {
+              functionName: "Axon.hard_tanh/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#hard_tanh/2",
+            },
+            description: "Clipped linear function in [-1, 1].",
+            useCases: [
+              "Mobile and embedded systems",
+              "Hardware with limited compute",
+              "Fast approximation of tanh",
+            ],
+            wiki: null,
+            mlCheatsheet: null,
+          },
+          {
+            id: "relu",
+            name: "ReLU (Rectified Linear Unit)",
+            func: relu,
+            color: "#f59e0b",
+            axon: {
+              functionName: "Axon.relu/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#relu/2",
+            },
+            description: "Most popular activation. Fast and effective.",
+            useCases: [
+              "DEFAULT CHOICE for hidden layers",
+              "Convolutional neural networks (CNNs)",
+              "Deep networks - prevents vanishing gradients",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Rectifier_(neural_networks)",
+            mlCheatsheet:
+              "https://ml-cheatsheet.readthedocs.io/en/latest/activation_functions.html#relu",
+          },
+          {
+            id: "relu6",
+            name: "ReLU6",
+            func: relu6,
+            color: "#22c55e",
+            axon: {
+              functionName: "Axon.relu6/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#relu6/2",
+            },
+            description: "ReLU capped at 6. Used in mobile models.",
+            useCases: [
+              "MOBILENET and mobile-optimized models",
+              "Low-precision hardware (8-bit)",
+              "Prevents numerical overflow",
+            ],
+            wiki: null,
+            mlCheatsheet: null,
+          },
+          {
+            id: "leaky-relu",
+            name: "Leaky ReLU",
+            func: leakyRelu,
+            color: "#ef4444",
+            axon: {
+              functionName: "Axon.leaky_relu/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#leaky_relu/2",
+            },
+            description: "Fixes dying ReLU with small negative slope.",
+            useCases: [
+              'When ReLU neurons are "dying" (always outputting 0)',
+              "Alternative to ReLU in very deep networks",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Rectified_linear_unit#Variants",
+            mlCheatsheet:
+              "https://ml-cheatsheet.readthedocs.io/en/latest/activation_functions.html#leakyrelu",
+          },
+          {
+            id: "elu",
+            name: "ELU (Exponential Linear Units)",
+            func: elu,
+            color: "#8b5cf6",
+            axon: {
+              functionName: "Axon.elu/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#elu/2",
+            },
+            description: "Exponential linear unit with smooth negative values.",
+            useCases: [
+              "Deep networks needing faster convergence",
+              "When negative values need smooth handling",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Rectified_linear_unit#ELU",
+            mlCheatsheet:
+              "https://ml-cheatsheet.readthedocs.io/en/latest/activation_functions.html#elu",
+          },
+          {
+            id: "celu",
+            name: "CELU (Continuously Differentiable Exponential Linear Unit)",
+            func: celu,
+            color: "#eab308",
+            axon: {
+              functionName: "Axon.celu/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#celu/2",
+            },
+            description: "Continuously differentiable ELU variant.",
+            useCases: [
+              "Alternative to ELU with better gradients",
+              "When smooth derivatives are important",
+            ],
+            wiki: null,
+            mlCheatsheet: null,
+          },
+          {
+            id: "gelu",
+            name: "GELU (Gaussian Error Linear Unit)",
+            func: gelu,
+            color: "#06b6d4",
+            axon: {
+              functionName: "Axon.gelu/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#gelu/2",
+            },
+            description: "Gaussian Error Linear Unit. Popular in transformers.",
+            useCases: [
+              "TRANSFORMERS (BERT, GPT models)",
+              "Natural language processing tasks",
+              "State-of-the-art language models",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Gaussian_error_linear_unit",
+            mlCheatsheet: null,
+          },
+          {
+            id: "selu",
+            name: "SELU (Scaled Exponential Linear Unit)",
+            func: selu,
+            color: "#84cc16",
+            axon: {
+              functionName: "Axon.selu/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#selu/2",
+            },
+            description: "Scaled ELU. Self-normalizing properties.",
+            useCases: [
+              "Self-normalizing networks (SNNs)",
+              "Deep networks without batch normalization",
+              "Must use with special initialization",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Scaled_exponential_linear_unit",
+            mlCheatsheet: null,
+          },
+          {
+            id: "silu",
+            name: "SiLU (Swish)",
+            func: silu,
+            color: "#f97316",
+            axon: {
+              functionName: "Axon.silu/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#silu/2",
+            },
+            description: "x * sigmoid(x). Smooth and non-monotonic.",
+            useCases: [
+              "Modern deep networks (MobileNet, EfficientNet)",
+              "Better than ReLU in some vision tasks",
+              "Google's research shows improved performance",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Swish_function",
+            mlCheatsheet: null,
+          },
+          {
+            id: "mish",
+            name: "Mish",
+            func: mish,
+            color: "#a855f7",
+            axon: {
+              functionName: "Axon.mish/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#mish/2",
+            },
+            description: "x * tanh(softplus(x)). Self-regularizing.",
+            useCases: [
+              "Object detection (YOLOv4)",
+              "Computer vision tasks",
+              "Alternative to ReLU with better performance",
+            ],
+            wiki: null,
+            mlCheatsheet: null,
+          },
+          {
+            id: "softmax",
+            name: "Softmax",
+            func: softmax,
+            color: "#f43f5e",
+            axon: {
+              functionName: "Axon.softmax/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#softmax/2",
+            },
+            description: "Normalizes to probability distribution.",
+            useCases: [
+              "MULTI-CLASS CLASSIFICATION output layer",
+              "Converting logits to probabilities",
+              "When classes are mutually exclusive (cat OR dog OR bird)",
+            ],
+            mlCheatsheet:
+              "https://ml-cheatsheet.readthedocs.io/en/latest/activation_functions.html#softmax",
+          },
+          {
+            id: "softplus",
+            name: "Softplus",
+            func: softplus,
+            color: "#ec4899",
+            axon: {
+              functionName: "Axon.softplus/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#softplus/2",
+            },
+            description: "Smooth ReLU approximation. log(1 + exp(x)).",
+            useCases: [
+              "When you need a smooth, differentiable ReLU",
+              "Variational autoencoders (VAEs)",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Rectified_linear_unit#Softplus",
+            mlCheatsheet: null,
+          },
+          {
+            id: "softsign",
+            name: "Softsign",
+            func: softsign,
+            color: "#64748b",
+            axon: {
+              functionName: "Axon.softsign/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#softsign/2",
+            },
+            description: "x/(1+|x|). Similar to tanh but smoother.",
+            useCases: [
+              "Alternative to tanh",
+              "Converges polynomially (not exponentially)",
+              "Rare - mostly experimental",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Activation_function#Table_of_activation_functions",
+            mlCheatsheet: null,
+          },
+          {
+            id: "log-sigmoid",
+            name: "Log Sigmoid",
+            func: logSigmoid,
+            color: "#0ea5e9",
+            axon: {
+              functionName: "Axon.log_sigmoid/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#log_sigmoid/2",
+            },
+            description: "log(sigmoid(x)). Numerically stable.",
+            useCases: [
+              "When computing log probabilities",
+              "Avoids numerical underflow",
+              "Loss function calculations",
+            ],
+            wiki: null,
+            mlCheatsheet: null,
+          },
+          {
+            id: "log-softmax",
+            name: "Log Softmax",
+            func: logSoftmax,
+            color: "#8b5cf6",
+            axon: {
+              functionName: "Axon.log_softmax/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#log_softmax/2",
+            },
+            description: "log(softmax(x)). Numerically stable.",
+            useCases: [
+              "Classification with negative log likelihood loss",
+              "More numerically stable than softmax + log",
+              "Training multi-class classifiers",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Softmax_function",
+            mlCheatsheet: null,
+          },
+          {
+            id: "log-sumexp",
+            name: "Log SumExp",
+            func: logSumExp,
+            color: "#06b6d4",
+            axon: {
+              functionName: "Axon.log_sumexp/2",
+              docLink: "https://hexdocs.pm/axon/Axon.html#log_sumexp/2",
+            },
+            description: "log(sum(exp(x))). Stable computation.",
+            useCases: [
+              "Numerical stability in probability calculations",
+              "Building block for softmax",
+              "Advanced optimization techniques",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/LogSumExp",
+            mlCheatsheet: null,
+          },
+        ],
+        loss: [
+          {
+            id: "binar-cross-entropy",
+            name: "Binary Cross-Entropy (aka log loss)",
+            func: bce,
+            color: "#f97316",
+            wiki: "https://en.wikipedia.org/wiki/Cross_entropy",
+            axon: {
+              functionName: "Axon.Losses.binary_cross_entropy/3",
+              docLink:
+                "https://hexdocs.pm/axon/Axon.Losses.html#binary_cross_entropy/3",
+            },
+            description:
+              "Measures difference between predicted and true binary labels.",
+            useCases: [
+              "Binary classification (spam vs not spam)",
+              "Multi-label classification (multiple yes/no predictions)",
+              "Use with sigmoid activation in output layer",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Cross-entropy",
+            mlCheatsheet:
+              "https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html#cross-entropy",
+          },
+
+          {
+            id: "categorical-cross-entropy",
+            name: "Categorical Cross-Entropy",
+            func: cce,
+            color: "#dc2626",
+            wiki: "https://en.wikipedia.org/wiki/Cross_entropy",
+            axon: {
+              functionName: "Axon.Losses.categorical_cross_entropy/3",
+              docLink:
+                "https://hexdocs.pm/axon/Axon.Losses.html#categorical_cross_entropy/3",
+            },
+            description:
+              "Measures difference between predicted and true categorical labels.",
+            useCases: [
+              "Multi-class classification (cat, dog, bird)",
+              "Use with softmax activation in output layer",
+              "When classes are mutually exclusive",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Cross-entropy",
+            mlCheatsheet: null,
+          },
+          {
+            id: "categorical-hinge-loss",
+            name: "Categorical Hinge Loss",
+            func: categoricalHinge,
+            color: "#f472b6",
+            wiki: "https://en.wikipedia.org/wiki/Hinge_loss",
+            axon: {
+              functionName: "Axon.Losses.categorical_hinge/3",
+              docLink:
+                "https://hexdocs.pm/axon/Axon.Losses.html#categorical_hinge/3",
+            },
+            description: "Multi-class version of hinge loss.",
+            useCases: [
+              "Multi-class SVM classification",
+              "When you want strong separation between classes",
+              "Alternative to categorical cross-entropy",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Hinge_loss",
+            mlCheatsheet: null,
+          },
+          {
+            id: "cosine-similarity",
+            name: "Cosine Similarity",
+            func: cosineSimilarity,
+            color: "#06b6d4",
+            axon: {
+              functionName: "Axon.Losses.cosine_similarity/3",
+              docLink:
+                "https://hexdocs.pm/axon/Axon.Losses.html#cosine_similarity/3",
+            },
+            description:
+              "Measures angle between prediction and target vectors.",
+            useCases: [
+              "Text similarity tasks",
+              "Face recognition and verification",
+              "When direction matters more than magnitude",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Cosine_similarity",
+            mlCheatsheet: null,
+          },
+          {
+            id: "mae",
+            name: "Mean Absolute Error (MAE) aka L1 loss",
+            func: mae,
+            color: "#10b981",
+            wiki: "https://en.wikipedia.org/wiki/Mean_absolute_error",
+            axon: {
+              functionName: "Axon.Losses.mean_absolute_error/3",
+              docLink:
+                "https://hexdocs.pm/axon/Axon.Losses.html#mean_absolute_error/3",
+            },
+            description:
+              "Average of absolute differences between predictions and targets.",
+            useCases: [
+              "Regression with outliers in data",
+              "Treats all errors equally (no squaring)",
+              "More robust than MSE for noisy data",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Mean_absolute_error",
+            mlCheatsheet:
+              "https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html#mae-l1",
+          },
+          {
+            id: "mse",
+            name: "Mean Squared Error (MSE) aka L2 loss",
+            func: mse,
+            color: "#3b82f6",
+            wiki: "https://en.wikipedia.org/wiki/Mean_squared_error",
+            axon: {
+              functionName: "Axon.Losses.mean_squared_error/3",
+              docLink:
+                "https://hexdocs.pm/axon/Axon.Losses.html#mean_squared_error/3",
+            },
+            description:
+              "Average of squared differences between predictions and targets.",
+            useCases: [
+              "Regression tasks (predicting continuous values)",
+              "Penalizes large errors heavily",
+              "Predicting prices, temperatures, quantities",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Mean_squared_error",
+            mlCheatsheet:
+              "https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html#mse-l2",
+          },
+
+          {
+            id: "hinge-loss",
+            name: "Hinge Loss",
+            func: hinge,
+            color: "#ec4899",
+            axon: {
+              functionName: "Axon.Losses.hinge/3",
+              docLink: "https://hexdocs.pm/axon/Axon.Losses.html#hinge/3",
+            },
+            description: "Used for maximum-margin classification (SVM).",
+            useCases: [
+              "Support Vector Machines (SVM)",
+              "Binary classification with margin",
+              "When you want predictions far from decision boundary",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Hinge_loss",
+            mlCheatsheet:
+              "https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html#hinge",
+          },
+          {
+            id: "huber-loss",
+            name: "Huber Loss",
+            func: huber,
+            color: "#f59e0b",
+            axon: {
+              functionName: "Axon.Losses.huber/3",
+              docLink: "https://hexdocs.pm/axon/Axon.Losses.html#huber/3",
+            },
+            description:
+              "Combines MSE and MAE - quadratic near 0, linear elsewhere.",
+            useCases: [
+              "Best of both worlds for regression",
+              "Robust to outliers while smooth near optimum",
+              "Real-world regression with some bad measurements",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Huber_loss",
+            mlCheatsheet:
+              "https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html#huber",
+          },
+          {
+            id: "kl-divergence",
+            name: "Kullback-Leibler Divergence (KL Divergence)",
+            func: kld,
+            color: "#8b5cf6",
+            axon: {
+              functionName: "Axon.Losses.kl_divergence/3",
+              docLink:
+                "https://hexdocs.pm/axon/Axon.Losses.html#kl_divergence/3",
+            },
+            description:
+              "Measures how one probability distribution differs from another.",
+            useCases: [
+              "Variational autoencoders (VAEs)",
+              "Comparing probability distributions",
+              "Regularization in probabilistic models",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence",
+            mlCheatsheet:
+              "https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html#kullback-leibler",
+          },
+
+          {
+            id: "log-cosh",
+            name: "Log-Cosh",
+            func: logCosh,
+            color: "#84cc16",
+            axon: {
+              functionName: "Axon.Losses.log_cosh/3",
+              docLink: "https://hexdocs.pm/axon/Axon.Losses.html#log_cosh/3",
+            },
+            description:
+              "Logarithm of hyperbolic cosine. Smooth approximation of MAE.",
+            useCases: [
+              "Regression tasks",
+              "Smoother than MAE, more robust than MSE",
+              "Good for data with occasional outliers",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Hyperbolic_functions",
+            mlCheatsheet: null,
+          },
+          {
+            id: "poisson-losh",
+            name: "Poisson Loss",
+            func: poissonLoss,
+            color: "#a855f7",
+            axon: {
+              functionName: "Axon.Losses.poisson/3",
+              docLink: "https://hexdocs.pm/axon/Axon.Losses.html#poisson/3",
+            },
+            description:
+              "For predicting count data following Poisson distribution.",
+            useCases: [
+              "Predicting counts (number of events)",
+              "Website traffic, sales volume, rare events",
+              "When target is non-negative integer counts",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Poisson_distribution",
+            mlCheatsheet: null,
+          },
+          {
+            name: "soft-margin-loss",
+            name: "Soft Margin Loss",
+            func: softMarginLoss,
+            color: "#f97316",
+            axon: {
+              functionName: "Axon.Losses.soft_margin/3",
+              docLink: "https://hexdocs.pm/axon/Axon.Losses.html#soft_margin/3",
+            },
+            description: "Smooth approximation of hinge loss.",
+            useCases: [
+              "Binary classification with soft margins",
+              "When you want smooth, differentiable hinge loss",
+              "Support vector machines with outliers",
+            ],
+            wiki: "https://en.wikipedia.org/wiki/Hinge_loss",
+            mlCheatsheet: null,
+          },
+        ],
+      };
+
+      // Create Vega-Lite spec for a function
+      const createSpec = (funcConfig) => ({
+        $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+        width: "container",
+        height: "container",
+        data: { values: generateData(funcConfig.func) },
+        layer: [
+          {
+            mark: { type: "rule", strokeDash: [4, 4], color: "#9ca3af" },
+            encoding: { y: { datum: 0 } },
+          },
+          {
+            mark: { type: "rule", strokeDash: [4, 4], color: "#9ca3af" },
+            encoding: { x: { datum: 0 } },
+          },
+          {
+            mark: {
+              type: "line",
+              color: funcConfig.color,
+              strokeWidth: 3,
+            },
+            encoding: {
+              x: {
+                field: "x",
+                type: "quantitative",
+                title: "x",
+                scale: { domain: [-6, 6] },
+              },
+              y: {
+                field: "y",
+                type: "quantitative",
+                title: "f(x)",
+                scale: { domain: funcConfig.yDomain },
+              },
+            },
+          },
+        ],
+      });
+
+      // Graph component
+      const FunctionGraph = ({ funcConfig }) => {
+        const chartRef = useRef(null);
+
+        useEffect(() => {
+          if (chartRef.current) {
+            vegaEmbed(chartRef.current, createSpec(funcConfig), {
+              actions: false,
+            });
+          }
+        }, [funcConfig]);
+
+        return (
+          <Section id={funcConfig.id} title={funcConfig.name}>
+            <SubSection className="flex flex-col gap-4">
+              <div class="flex flex-col gap-2">
+                <a class="link link-primary" href={funcConfig.axon.docLink}>
+                  <code>{funcConfig.axon.functionName}</code>
+                </a>
+              </div>
+              <div class="">
+                <div class="font-semibold">Description:</div>
+                <p>{funcConfig.description}</p>
+              </div>
+              <div class="">
+                <div class="font-semibold">Use Cases:</div>
+                <ul class="text-success text-sm flex flex-col gap-1">
+                  {funcConfig.useCases.map((useCase) => (
+                    <li class="font-semibold">✓ {useCase}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                {funcConfig.wiki && (
+                  <a className="link link-primary" href={funcConfig.wiki}>
+                    📖 Wikipedia
+                  </a>
+                )}
+
+                {funcConfig.wiki && funcConfig.mlCheatsheet && <span> | </span>}
+
+                {funcConfig.mlCheatsheet && (
+                  <a
+                    className="link link-primary"
+                    href={funcConfig.mlCheatsheet}
+                  >
+                    📕 ML Cheatsheet
+                  </a>
+                )}
+              </div>
+            </SubSection>
+            <div
+              ref={chartRef}
+              class="card bg-base-100 shadow-xl mx-auto w-full h-64 overflow-hidden"
+            ></div>
+          </Section>
+        );
+      };
+
+      const Section = ({ id = "", title, children }) => {
+        return (
+          <section
+            id={id ? id : ""}
+            className="card card-border bg-base-100 full-w"
+          >
+            <div class="card-body justify-between">
+              <h2 class="card-title text-2xl font-semibold mb-4"> {title} </h2>
+              {children}
+            </div>
+          </section>
+        );
+      };
+      const SubSection = ({ className, children }) => {
+        return (
+          <section class="card flex flex-col gap-6 bg-base-200 shadow-xl leading-relaxed">
+            <div class={`card-body ${className}`}>{children}</div>
+          </section>
+        );
+      };
+
+      const Tab = ({ name, title, className, checked = false, children }) => {
+        const [isActive, setIsActive] = useState(checked);
+
+        return (
+          <>
+            <input
+              type="radio"
+              name={name}
+              class="tab"
+              aria-label={title}
+              defaultChecked={checked}
+              onChange={(e) => setIsActive(e.target.checked)}
+            />
+
+            <div class="tab-content">{isActive && children}</div>
+          </>
+        );
+      };
+
+      const ActivationFunctionsTab = ({ functionConfigs }) => {
+        const closeMenu = (e) => {
+          e.target.closest("details").removeAttribute("open");
+        };
+
+        return (
+          <Tab
+            name="function-graphs"
+            title="Activation Functions"
+            className="flex flex-col gap-2"
+            checked={true}
+          >
+            <ul class="menu sm:menu-horizontal bg-base-200 rounded-box">
+              <li>
+                {" "}
+                <a href="#what-are-activation-functions">
+                  What are Activation Functions?
+                </a>{" "}
+              </li>
+              <li>
+                {" "}
+                <a href="#activations-key-concepts">Key Concepts</a>{" "}
+              </li>
+              <li>
+                <details class="w-64 z-10">
+                  <summary>Functions</summary>
+                  <ul>
+                    {functionConfigs.map((funcConfig) => (
+                      <li>
+                        {" "}
+                        <a href={`#${funcConfig.id}`} onClick={closeMenu}>
+                          {funcConfig.name}
+                        </a>{" "}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              </li>
+            </ul>
+
+            <div class="flex flex-col gap-2">
+              <Section
+                id="what-are-activation-functions"
+                title="What are Activation Functions?"
+              >
+                <SubSection className="flex flex-col gap-6">
+                  <p>
+                    Activation functions are mathematical operations applied to
+                    each neuron's output in a neural network. They introduce{" "}
+                    <strong className="text-warning"> non-linearity </strong>,
+                    which allows the network to learn complex patterns. Without
+                    activation functions, your neural network would just be a
+                    fancy linear regression model, no matter how many layers you
+                    add!
+                  </p>
+                  <p>
+                    Think of them as decision-makers: they take the neuron's
+                    input and decide how strongly to "fire" or activate.
+                    Different activation functions have different properties -
+                    some are fast, some are smooth, some prevent certain
+                    training problems.
+                  </p>
+                  <p>
+                    <strong>Links:</strong>
+                    <ul>
+                      <li>
+                        <a
+                          class="link link-primary"
+                          href="https://en.wikipedia.org/wiki/Activation_function"
+                        >
+                          Wikipedia page
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          class="link link-primary"
+                          href="https://en.wikipedia.org/wiki/Activation_function#Table_of_activation_functions"
+                        >
+                          Wikipedia - Table of activation functions
+                        </a>
+                      </li>
+                    </ul>
+                  </p>
+                </SubSection>
+              </Section>
+
+              <Section id="activations-key-concepts" title="Key Concepts">
+                <SubSection className="flex flex-col gap-6">
+                  <div>
+                    <strong className="text-info">
+                      {" "}
+                      Graphable Functions:{" "}
+                    </strong>
+                    Only activation functions can be visualized as mathematical
+                    graphs. They transform input values element-wise.
+                  </div>
+                  <div>
+                    <strong className="text-success">
+                      {" "}
+                      Modern Activations:{" "}
+                    </strong>
+                    GELU, SiLU, and Mish are popular in recent architectures
+                    like transformers and perform well across tasks.
+                  </div>
+                  <div>
+                    <strong className="text-warning">
+                      {" "}
+                      Hardware-Friendly:{" "}
+                    </strong>
+                    Hard sigmoid, hard tanh, and ReLU6 are optimized for mobile
+                    and edge devices with limited compute.
+                  </div>
+                  <div>
+                    <strong className="text-error">
+                      {" "}
+                      Non-Graphable Layers:{" "}
+                    </strong>
+                    Linear (dense, embedding), Convolution, Pooling,
+                    Normalization, Recurrent, and Shape layers operate on
+                    tensors and cannot be shown as simple 2D graphs.
+                  </div>
+                </SubSection>
+              </Section>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                {functionConfigs.map((funcConfig) => (
+                  <FunctionGraph funcConfig={funcConfig} />
+                ))}
+              </div>
+            </div>
+          </Tab>
+        );
+      };
+
+      const LossFunctionsTab = ({ functionConfigs }) => {
+        const closeMenu = (e) => {
+          e.target.closest("details").removeAttribute("open");
+        };
+
+        return (
+          <Tab
+            name="function-graphs"
+            title="Loss Functions"
+            className="flex flex-col gap-2"
+          >
+            <ul class="menu sm:menu-horizontal bg-base-200 rounded-box">
+              <li>
+                {" "}
+                <a href="#what-are-loss">What are Loss Functions?</a>{" "}
+              </li>
+              <li>
+                {" "}
+                <a href="#loss-key-concepts">Key Concepts</a>{" "}
+              </li>
+              <li>
+                <details class="w-64 z-10">
+                  <summary>Functions</summary>
+                  <ul>
+                    {functionConfigs.map((funcConfig) => (
+                      <li>
+                        {" "}
+                        <a href={`#${funcConfig.id}`} onClick={closeMenu}>
+                          {funcConfig.name}
+                        </a>{" "}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              </li>
+            </ul>
+
+            <div class="flex flex-col gap-2">
+              <Section id="what-are-loss" title="What are Loss Functions?">
+                <SubSection className="flex flex-col">
+                  <p className="leading-relaxed mb-3">
+                    Loss functions (also called cost or objective functions)
+                    measure <strong className="text-warning">how wrong</strong>{" "}
+                    your model's predictions are. During training, the network
+                    tries to <strong className="text-success">minimize</strong>{" "}
+                    this loss - making smaller and smaller errors over time.
+                  </p>
+                  <p className="leading-relaxed">
+                    The choice of loss function depends on your task: regression
+                    tasks (predicting numbers) use different losses than
+                    classification tasks (predicting categories). The loss
+                    function is what the training algorithm optimizes - it's the
+                    "compass" that guides learning.
+                  </p>
+                  <p>
+                    <strong>Links:</strong>
+                    <ul>
+                      <li>
+                        <a
+                          class="link link-primary"
+                          href="https://en.wikipedia.org/wiki/Loss_function"
+                        >
+                          Wikipedia page
+                        </a>
+                      </li>
+                    </ul>
+                  </p>
+                </SubSection>
+              </Section>
+
+              <Section id="loss-key-concepts" title="Key Concepts">
+                <SubSection className="flex flex-col gap-4">
+                  <div>
+                    <strong className="text-info"> MSE vs MAE: </strong>
+                    MSE penalizes large errors more heavily. MAE treats all
+                    errors equally.
+                  </div>
+                  <div>
+                    <strong className="text-success"> Huber Loss: </strong>
+                    Combines benefits of MSE and MAE, quadratic for small
+                    errors, linear for large ones.
+                  </div>
+                  <div>
+                    <strong className="text-warning"> Cross-Entropy: </strong>
+                    Standard loss for classification tasks. Measures difference
+                    between predicted and true distributions.
+                  </div>
+                  <div>
+                    <strong className="text-error"> Task Specific: </strong>
+                    Use MSE/MAE for regression, cross-entropy for
+                    classification.
+                  </div>
+                </SubSection>
+              </Section>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                {functionConfigs.map((funcConfig) => (
+                  <FunctionGraph
+                    key={funcConfig.name}
+                    funcConfig={funcConfig}
+                  />
+                ))}
+              </div>
+            </div>
+          </Tab>
+        );
+      };
+
+      const ScrollToTop = () => {
+        const [isVisible, setIsVisible] = useState(false);
+
+        useEffect(() => {
+          const toggleVisibility = () => {
+            setIsVisible(window.scrollY > 300);
+          };
+
+          window.addEventListener("scroll", toggleVisibility);
+          return () => window.removeEventListener("scroll", toggleVisibility);
+        }, []);
+
+        const scrollToTop = () => {
+          window.scrollTo({ top: 0 });
+        };
+
+        return (
+          <>
+            {isVisible && (
+              <button
+                onClick={scrollToTop}
+                className="btn btn-xl btn-circle btn-secondary fixed bottom-8 right-8 shadow-lg"
+                aria-label="Scroll to top"
+              >
+                <img src="up-arrow.svg" class="size-6" />
+              </button>
+            )}
+          </>
+        );
+      };
+
+      // Main App component
+      const App = () => {
+        return (
+          <div className="bg-base-100 min-h-screen">
+            <div className="max-w-4xl mx-auto flex flex-col gap-2">
+              <h1 className="text-3xl font-bold mb-8 text-center">
+                Elixir Axon ML Functions
+              </h1>
+              <p class="p-2">
+                Visual guide to Elixir Axon activation and loss functions. (Graphs,
+                descriptions and use cases vibe-coded)
+              </p>
+
+              <div role="tablist" class="tabs tabs-box">
+                <ActivationFunctionsTab
+                  functionConfigs={functionConfigs.activation}
+                />
+                <LossFunctionsTab functionConfigs={functionConfigs.loss} />
+              </div>
+            </div>
+
+            <ScrollToTop />
+          </div>
+        );
+      };
+
+      // Render the app
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
